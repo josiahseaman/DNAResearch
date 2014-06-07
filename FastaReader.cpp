@@ -1,3 +1,5 @@
+// comment added by salvador
+
 #include "FastaReader.h"
 #include "BasicTypes.h"
 #include "glwidget.h"
