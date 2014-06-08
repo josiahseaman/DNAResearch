@@ -1,24 +1,13 @@
-#include <QtGui>
+
 #include "GtfReader.h"
-#include "NucleotideDisplay.h"
-#include "BasicTypes.h"
-#include "UiVariables.h"
-#include "ui_BookmarkDialog.h"
 #include "SkittleUtil.h"
 
-#include <QDebug>
-#include <QThread>
-#include <QString>
-#include <qtconcurrentrun.h>
-#include <QApplication>
 #include <stdio.h>
 #include <string.h>
 #include <sstream>
 
 #include <stdlib.h>
-#include <ctime>
 
-using namespace QtConcurrent;
 using namespace std;
 
 /** **********************************
@@ -36,11 +25,10 @@ using namespace std;
 
 **************************************/
 
-GtfReader::GtfReader(UiVariables* gui)
-{	
-    ui = gui;
+GtfReader::GtfReader()
+{
     inputFilename = string("blank.fa");
-    outputFilename = string("user.gff");
+    outputFilename = string("user.gff"); //you'll need to make your own file
     bytesInFile = 0;
     blockSize = 1000000;
     chrName = string("");
@@ -64,51 +52,53 @@ bool GtfReader::initFile(string fileName)
     return true;
 }
 
-/**SLOTS**/
+
+//TODO: You will need to write your own AddBookmark (creates a new GTF entry.
+//The old method relied heavily on Qt and so it is no reusable.
 void GtfReader::addBookmark(int start, int end)
 {
-    QDialog parent;
-    Ui_BookmarkDialog dialog;
-    dialog.setupUi(&parent);
+//    QDialog parent;
+//    Ui_BookmarkDialog dialog;
+//    dialog.setupUi(&parent);
 
-    std::stringstream startText;
-    startText << start;
-    dialog.start->setText( QString( startText.str().c_str() ) );
-    std::stringstream endText;
-    endText << end;
-    dialog.end->setText( QString(endText.str().c_str() ) );
-    dialog.sequence->setText( QString(chrName.c_str()) );
+//    std::stringstream startText;
+//    startText << start;
+//    dialog.start->setText( QString( startText.str().c_str() ) );
+//    std::stringstream endText;
+//    endText << end;
+//    dialog.end->setText( QString(endText.str().c_str() ) );
+//    dialog.sequence->setText( QString(chrName.c_str()) );
 
-    parent.show();
+//    parent.show();
 
-    int result = parent.exec();
-    if(result == QDialog::Accepted)
-    {
-        ofstream outFile;
-        outFile.open(outputFilename.c_str(), ios::app);
-        if(!outFile.fail())
-        {
-            outFile << dialog.sequence->text().toStdString()<<"\t";
-            outFile << dialog.source->text().toStdString()<<"\t";
-            outFile << dialog.feature->text().toStdString()<<"\t";
-            outFile << dialog.start->text().toStdString() <<"\t";
-            outFile << dialog.end->text().toStdString() << "\t";
-            outFile << dialog.score->text().toStdString() << "\t";
-            outFile << (dialog.strand->isChecked() ? "+" : "-") << "\t";//QCheckBox
-            outFile << dialog.frame->currentText().toStdString() << "\t";//QComboBox
-            outFile << dialog.note->toPlainText().toStdString() << "\t";//QPlainTextEdit
-            outFile << "\n";
-            outFile.close();
+//    int result = parent.exec();
+//    if(result == QDialog::Accepted)
+//    {
+//        ofstream outFile;
+//        outFile.open(outputFilename.c_str(), ios::app);
+//        if(!outFile.fail())
+//        {
+//            outFile << dialog.sequence->text().toStdString()<<"\t";
+//            outFile << dialog.source->text().toStdString()<<"\t";
+//            outFile << dialog.feature->text().toStdString()<<"\t";
+//            outFile << dialog.start->text().toStdString() <<"\t";
+//            outFile << dialog.end->text().toStdString() << "\t";
+//            outFile << dialog.score->text().toStdString() << "\t";
+//            outFile << (dialog.strand->isChecked() ? "+" : "-") << "\t";//QCheckBox
+//            outFile << dialog.frame->currentText().toStdString() << "\t";//QComboBox
+//            outFile << dialog.note->toPlainText().toStdString() << "\t";//QPlainTextEdit
+//            outFile << "\n";
+//            outFile.close();
 
-            track_entry entry = track_entry(dialog.start->text().toInt(), dialog.end->text().toInt(), color_entry(), dialog.note->toPlainText().toStdString());
-            emit BookmarkAdded(entry, outputFilename);
-        }
-        else
-        {
-            ErrorBox msg("Could not read the file.");
-            outFile.close();
-        }
-    }
+////            track_entry entry = track_entry(dialog.start->text().toInt(), dialog.end->text().toInt(), dialog.note->toPlainText().toStdString());
+////            return BookmarkAdded(entry, outputFilename);
+//        }
+//        else
+//        {
+////            ErrorBox msg("Could not read the file.");
+//            outFile.close();
+//        }
+//    }
 }
 
 void GtfReader::determineOutputFile(QString file)
@@ -119,11 +109,11 @@ void GtfReader::determineOutputFile(QString file)
     chrName = trimPathFromFilename(filename);
 }
 
-vector<track_entry>  GtfReader::readFile(QString filename)
+vector<track_entry>  GtfReader::readFile(string filename)
 {
 
     vector<track_entry> annotation_track;
-    inputFilename = filename.toStdString();
+    inputFilename = filename;
     if( inputFilename.empty() || !initFile(inputFilename) )
     {
         return vector<track_entry>();
@@ -151,27 +141,26 @@ vector<track_entry>  GtfReader::readFile(QString filename)
             chromosomeRead = "NONE";
         }
 
-        //Ask user if our parsed chromosome name is correct
-        QStringList items;
-        items  = getChromosomes();
+        //QT: Ask user if our parsed chromosome name is correct
+//        vector<string> items;
+//        items  = getChromosomes();
 
-        bool ok;
-        int index = items.indexOf(QString::fromStdString(chromosomeRead));
-        if (index == -1)
-        {
-            index = 0;
-            QString temp = QInputDialog::getItem(0, tr("Current Chromosome Name"), tr("Please pick the name of the current chromosome from the Annotation File."), items, index, false, &ok);
+//        bool ok;
+//        int index = items.indexOf(chromosomeRead);
+//        if (index == -1)
+//        {
+//            index = 0;
+//            QString temp = QInputDialog::getItem(0, tr("Current Chromosome Name"), tr("Please pick the name of the current chromosome from the Annotation File."), items, index, false, &ok);
 
-            if(ok && !temp.isEmpty())
-            {
-                chromosomeRead = temp.toStdString();
-            }
-        }
+//            if(ok && !temp.isEmpty())
+//            {
+//                chromosomeRead = temp.toStdString();
+//            }
+//        }
         file.close();
-        initFile(filename.toStdString());
+        initFile(filename);
     }
 
-    srand(time(0));
     string line;
     while( getline(file, line) )
     {
@@ -195,10 +184,9 @@ vector<track_entry>  GtfReader::readFile(QString filename)
             lineStr.ignore(10000, '\t');//6*/
             //getline(lineStr, repClass, '\t');//repClass - type
             lineStr >> start >> stop;//genoStart	//genoEnd
-            color c = color_entry();//repClass);
             if(!lineStr.fail())
             {
-                annotation_track.push_back( track_entry(start, stop, c, line) );
+                annotation_track.push_back( track_entry(start, stop, line) );
                 int last_entry = annotation_track.size() -1;
                 annotation_track[last_entry].index = last_entry;
             }
@@ -208,26 +196,21 @@ vector<track_entry>  GtfReader::readFile(QString filename)
     return annotation_track;
 }
 
-QStringList GtfReader::getChromosomes()
+vector<string> GtfReader::getChromosomes()
 {
-    QStringList list;
-
-    srand(time(0));
+    vector<string> list();
     string line;
     while(getline(file, line))
     {
         stringstream lineStr(line);
 
         string chromosomeName;
-        lineStr >> chromosomeName;
+        lineStr >> chromosomeName; //read first column in GTF
 
-        QString cn = QString::fromStdString(chromosomeName);
-
-        if(!list.contains(cn))
-            list.append(cn);
+        if(!list.contains(chromosomeName))//should prevent duplicates
+            list.append(chromosomeName);
     }
-
-    list.removeDuplicates();
+//    list.removeDuplicates(); //function of QStringList no longer accessible
 
     return list;
 }
@@ -245,15 +228,6 @@ void GtfReader::snipAnnotatedSequence()
     }
     fout.close();
 }*/
-
-color GtfReader::color_entry()
-{
-    volatile int r = (int)(((float)rand() / RAND_MAX)* 255);
-    volatile int g = (int)(((float)rand() / RAND_MAX)* 255);
-    volatile int b = (int)(((float)rand() / RAND_MAX)* 255);
-    color c = color(r, g, b);
-    return c;
-}
 
 bool GtfReader::eq(string& str1, const char* str2)
 {

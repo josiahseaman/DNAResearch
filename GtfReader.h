@@ -5,44 +5,74 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <QObject>
-#include "BasicTypes.h"
-#include "UiVariables.h"
 
 using namespace std;
 
-class QProgressDialog;
 
-class GtfReader : public QObject
+class track_entry{ //copied from BasicTypes.h
+public:
+    int start;
+    int stop;
+    color col;
+    string line;
+    int index;
+    track_entry(){
+        start=0;
+        stop = 0;
+        col = color(0,0,0);
+    }
+    track_entry(int Start, int Stop, color C)
+    {
+        start = Start;
+        stop = Stop;
+        col = C;
+    }
+    track_entry(int Start, int Stop, color C, string Line)
+    {
+        start = Start;
+        stop = Stop;
+        col = C;
+        line = Line;
+    }
+    bool operator < (track_entry& b)
+    {
+        if(start < b.start)
+            return true;
+        else if( start == b.start)
+            return stop < b.stop;
+        else
+            return false;
+    }
+    bool isBlank()
+    {
+        return ( (start==0 && stop==0 && col.r == 0 && col.g == 0 && col.b == 0) );
+    }
+    string toString() const
+    {
+        return line;
+    }
+};
+
+
+
+class GtfReader
 {
-    Q_OBJECT
-
 public:
     string inputFilename;
     string chrName;
 
-    GtfReader(UiVariables *ui);
-    vector<track_entry> readFile(QString filename);
+    GtfReader();
+    vector<track_entry> readFile(string filename);
     string outputFile();
     void addBookmark(int start, int end);
-
-public slots:
-    void determineOutputFile(QString file);
-
-signals:
-    void newGtfFileRead(const vector<track_entry>&);
-    void progressValueChanged(int start);
-    void BookmarkAdded(track_entry, string);
+    void determineOutputFile(string file);
 
 private:
     bool initFile(string fileName);
-    color color_entry();
     bool eq(string& str1, const char* str2);
 
-    UiVariables* ui;
     string outputFilename;
     ifstream file;
-    QProgressDialog* progressBar;
     int bytesInFile;//file size, but more specific
     int blockSize;
     QStringList getChromosomes();
