@@ -2,7 +2,6 @@
 
 #include "FastaReader.h"
 #include "BasicTypes.h"
-#include "glwidget.h"
 #include "UiVariables.h"
 #include "SkittleUtil.h"
 
@@ -34,8 +33,6 @@ FastaReader::FastaReader()
 {
     sequence = string("AATCGATCGTACGCTACGATCGCTACGCAGCTAGGACGGATT"); // random string of letters
     bytesInFile = 0;
-    progressBar = NULL;
-    cancelled = false;
 }
 FastaReader::~FastaReader()
 {
