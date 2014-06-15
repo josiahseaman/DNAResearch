@@ -179,16 +179,7 @@ class RepeatMap():
 # <codecell>
 
 rp = RepeatMap(debugSequence(25, 200, 5))
-
-# <codecell>
-
 rp.render()
-
-# <codecell>
-
-fig, ax = plt.subplots()
-fig.figsize = (3,9)
-fig.figsize
 
 # <codecell>
 
