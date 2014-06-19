@@ -91,16 +91,19 @@ seq = 'CTACTACTACTACTACTACTACTACTACTACTACTACTACTACTACTACTACTACTACTACTACTACTACTAC
 
 # <codecell>
 
-seq[1*x_size: 1*x_size + raster_width]
+#seq[1*x_size : 1*x_size + raster_width]
+seq[7:15]
 
 # <codecell>
 
-sum([True, False, True])
+sum([True, False, True,True])
 
 # <codecell>
 
+raster_width = 11
 x_size = 75 # frequency range
 y_size = int(len(seq) / raster_width) # number of lines: (cut off the end)
+raster_width
 
 # <codecell>
 
